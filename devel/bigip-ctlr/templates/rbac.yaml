@@ -6,7 +6,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 ---
 kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: {{ template "rbac.apiVersion" . }}
 metadata:
   name: bigip-ctlr-clusterrole-binding
   namespace: {{ .Release.Namespace }}
@@ -20,7 +20,7 @@ subjects:
   namespace: {{ .Release.Namespace }}
 ---
 kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: {{ template "rbac.apiVersion" . }}
 metadata:
   name: bigip-ctlr-clusterrole
 rules:
