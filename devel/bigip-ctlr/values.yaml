@@ -1,0 +1,15 @@
+# Default values for biit.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+rbac:
+  create: false
+image:
+  repository: f5networks/k8s-bigip-ctlr
+  version: 1.4.1
+  pullPolicy: IfNotPresent
+bigip:
+  loglevel: 'INFO' # BigIP Log Level
+  # username: username to connect to BigIP
+  # password: password to connect to BigIP
+  # partition: partition to manage on BigIP
+  # defaultip: default IP address for BigIP Virtual Servers

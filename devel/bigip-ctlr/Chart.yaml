@@ -1,0 +1,4 @@
+apiVersion: v1
+description: F5 BIG-IP Controller for Kubernetes
+name: bigip-ctlr
+version: 1.3
