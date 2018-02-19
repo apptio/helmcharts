@@ -1,0 +1,36 @@
+# Default values for cachet.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+
+# cachetKey:
+
+postgresql:
+  postgresDatabase: cachet
+
+replicaCount: 1
+
+image:
+  repository: cachethq/docker
+  tag: 2.3.13
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 80
+
+ingress:
+  enabled: false
+  annotations: {}
+  path: /
+  hosts:
+    - localhost
+  tls: []
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

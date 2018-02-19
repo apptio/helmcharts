@@ -1,0 +1,76 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "cachet.fullname" . }}
+  labels:
+    app: {{ template "cachet.name" . }}
+    chart: {{ template "cachet.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "cachet.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "cachet.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: APP_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "cachet.fullname" . }}
+                key: cachet-key
+          - name: DB_DRIVER
+            value: pgsql
+          - name: APP_DEBUG
+            value: "true"
+          - name: DB_HOST
+            value: {{ template "cachet.fullname" . }}-postgresql
+          - name: DB_DATABASE
+            value: {{ .Values.postgresql.postgresDatabase }}
+          - name: DB_USERNAME
+            value: postgres
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-postgresql
+                key: postgres-password
+          - name: MAIL_HOST
+            value: {{ .Values.mailHost }}
+          - name: APP_URL
+            value: https://status.dapt.to
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /api/v1/ping
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /api/v1/ping
+              port: http
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
