@@ -1,22 +1,22 @@
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: {{ template "alerta.fullname" . }}
+  name: {{ include "alerta.fullname" . }}
   labels:
-    app: {{ template "alerta.name" . }}
-    chart: {{ template "alerta.chart" . }}
+    app: {{ include "alerta.name" . }}
+    chart: {{ include "alerta.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "alerta.name" . }}
+      app: {{ include "alerta.name" . }}
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ template "alerta.name" . }}
+        app: {{ include "alerta.name" . }}
         release: {{ .Release.Name }}
     spec:
       containers:
@@ -24,23 +24,19 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            - name: MONGO_URI
-              value: mongodb://{{ template "alerta.fullname" . }}-mongodb:27017/monitoring
-            - name: CORS_ORIGINS
-              value: {{ range $index, $element := .Values.ingress.hosts }}{{- if $index}},{{- end }}{{ $element }}{{- end }}
               {{- if .Values.alertaAdminUsers }}
             - name: ADMIN_USERS
-              value: {{ range $index, $element := .Values.alertaAdminUsers }}{{- if $index}},{{- end }}{{ $element }}{{- end }}
+              value: {{ range $index, $element := .Values.alertaAdminUsers }}{{- if $index}}', '{{- end }}{{ $element }}{{- end }}
               {{- end }}
             - name: ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ template "alerta.fullname" . }}
                   key: alerta-admin-password
-            - name: PLUGINS
-              value: {{ range $index, $element := .Values.alertaPlugins }}{{- if $index}},{{- end }}{{ $element }}{{- end }}
+              {{- if .Values.alertaInstallPlugins }}
             - name: INSTALL_PLUGINS
               value: {{ range $index, $element := .Values.alertaInstallPlugins }}{{- if $index}},{{- end }}{{ $element }}{{- end }}
+              {{- end }}
           ports:
             - name: http
               containerPort: 8080
@@ -48,21 +44,26 @@ spec:
           livenessProbe:
             httpGet:
               path: /
-              port: 8080
-            initialDelaySeconds: 15
-            timeoutSeconds: 1
-            successThreshold: 1
-            failureThreshold: 10
+              port: http
           readinessProbe:
             httpGet:
               path: /
-              port: 8080
-            initialDelaySeconds: 15
-            timeoutSeconds: 1
-            successThreshold: 1
-            failureThreshold: 3
+              port: http
+          volumeMounts:
+            - name: alerta-config
+              mountPath: /app/alertad.conf
+              subPath: alertad.conf
+              {{- if .Values.alertaWebUIConfig }}
+            - name: alerta-config
+              mountPath: /app/config.js
+              subPath: config.js
+              {{- end }}
           resources:
 {{ toYaml .Values.resources | indent 12 }}
+      volumes:
+        - name: alerta-config
+          configMap:
+            name: {{ include "alerta.fullname" . }}
     {{- with .Values.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}

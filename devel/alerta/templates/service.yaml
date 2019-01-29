@@ -1,19 +1,19 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "alerta.fullname" . }}
+  name: {{ include "alerta.fullname" . }}
   labels:
-    app: {{ template "alerta.name" . }}
-    chart: {{ template "alerta.chart" . }}
+    app: {{ include "alerta.name" . }}
+    chart: {{ include "alerta.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: 8080
+      targetPort: http
       protocol: TCP
       name: http
   selector:
-    app: {{ template "alerta.name" . }}
+    app: {{ include "alerta.name" . }}
     release: {{ .Release.Name }}
